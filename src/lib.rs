@@ -1,18 +1,13 @@
-use std::io::Error;
-
-use axum::{
-    extract::rejection::JsonRejection, http::StatusCode, routing::MethodRouter, Json, Router,
-};
+use std::env;
+use axum::{http::StatusCode, Json, Router};
+use serde_json::{json, Value};
+use time;
 use tokio::net::TcpListener;
 use tower::ServiceBuilder;
-use tower_http::cors::CorsLayer;
+use tower_http::cors;
 
-type AxumRoute = (&'static str, MethodRouter);
+pub use axum::routing::{get,MethodRouter};
 
-pub use axum::{extract, http, routing};
-pub use serde_json::{json, Value};
-
-pub type Request<T> = Result<Json<T>, JsonRejection>;
 pub type Response = (StatusCode, Json<Value>);
 
 pub struct MakeResponse;
@@ -34,34 +29,41 @@ impl MakeResponse {
     }
 }
 
-pub struct AxumServer {
-    router: Router,
-    listener: TcpListener,
+const FILE_NAME: &str = "🌐 AxumServer/main";
+
+fn get_server_port() -> String {
+    time::log(FILE_NAME, "Recuperando valor da variável \"SERVER_PORT\"...");
+    if let Err(error) = dotenvy::dotenv() {
+        let message = format!("{}: \"{}\"", "Atenção! erro ao tentar carregar arquivo .env!", error.to_string());
+        time::log("🟡 AxumServer/main", &message);
+    }
+    env::var("SERVER_PORT").expect("\n\t❌ A variável de ambiente \"SERVER_PORT\" não foi definida!\n\n")
 }
 
-impl AxumServer {
-    pub async fn new(
-        server_port: String,
-        routes: Vec<AxumRoute>,
-        cors: Option<CorsLayer>,
-    ) -> Result<Self, Error> {
-        let address = format!("0.0.0.0:{}", server_port);
+pub async fn start(routes: Vec<(&'static str, MethodRouter)>) {
+    let server_port = get_server_port();
 
-        let mut router = Router::new();
-        for route in routes {
-            router = router.route(route.0, route.1);
-        }
+    let mut router = Router::new();
 
-        if let Some(cors) = cors {
-            router = router.layer(ServiceBuilder::new().layer(cors));
-        }
-
-        let listener = TcpListener::bind(address).await?;
-
-        Ok(AxumServer { router, listener })
+    for route in routes.iter() {
+        router = router.route(route.0, route.1.clone())
     }
+    drop(routes);
+    router = router.layer(
+        ServiceBuilder::new().layer(
+            cors::CorsLayer::new()
+                .allow_headers(cors::Any)
+                .allow_methods(cors::Any)
+                .allow_origin(cors::Any),
+        ),
+    );
 
-    pub async fn run(self) -> Result<(), Error> {
-        axum::serve(self.listener, self.router).await
-    }
+    let address = format!("0.0.0.0:{}", &server_port);
+    let listener = TcpListener::bind(&address).await
+        .expect("\n\t❌ Falha o tentar criar listener...\n\n");
+
+    time::log(FILE_NAME, &format!("Servidor inciado na porta \"{}\"", server_port));
+
+    axum::serve(listener, router).await
+        .expect("\n\t❌ Falha o tentar iniciar o servidor\n\n");
 }
