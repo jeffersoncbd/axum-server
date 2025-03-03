@@ -1,7 +1,7 @@
 use std::env;
 use axum::{http::StatusCode, Json, Router};
 use serde_json::{json, Value};
-use time;
+use logger;
 use tokio::net::TcpListener;
 use tower::ServiceBuilder;
 use tower_http::cors;
@@ -32,10 +32,10 @@ impl MakeResponse {
 const FILE_NAME: &str = "🌐 AxumServer/main";
 
 fn get_server_port() -> String {
-    time::log(FILE_NAME, "Recuperando valor da variável \"SERVER_PORT\"...");
+    logger::log(FILE_NAME, "Recuperando valor da variável \"SERVER_PORT\"...");
     if let Err(error) = dotenvy::dotenv() {
         let message = format!("{}: \"{}\"", "Atenção! erro ao tentar carregar arquivo .env!", error.to_string());
-        time::log("🟡 AxumServer/main", &message);
+        logger::log("🟡 AxumServer/main", &message);
     }
     env::var("SERVER_PORT").expect("\n\t❌ A variável de ambiente \"SERVER_PORT\" não foi definida!\n\n")
 }
@@ -62,7 +62,7 @@ pub async fn start(routes: Vec<(&'static str, MethodRouter)>) {
     let listener = TcpListener::bind(&address).await
         .expect("\n\t❌ Falha o tentar criar listener...\n\n");
 
-    time::log(FILE_NAME, &format!("Servidor inciado na porta \"{}\"", server_port));
+    logger::log(FILE_NAME, &format!("Servidor inciado na porta \"{}\"", server_port));
 
     axum::serve(listener, router).await
         .expect("\n\t❌ Falha o tentar iniciar o servidor\n\n");
