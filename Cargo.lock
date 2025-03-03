@@ -94,12 +94,12 @@ dependencies = [
 
 [[package]]
 name = "axum_server"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "axum",
  "dotenvy",
+ "logger",
  "serde_json",
- "time",
  "tokio",
  "tower",
  "tower-http",
@@ -366,6 +366,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "04cbf5b083de1c7e0222a7a51dbfdba1cbe1c6ab0b15e29fff3f6c077fd9cd9f"
 
 [[package]]
+name = "logger"
+version = "0.1.0"
+source = "git+https://github.com/jeffersoncbd/logger.git#47fb0515988356fdab3b5679e77bab5705b8de6a"
+dependencies = [
+ "chrono",
+]
+
+[[package]]
 name = "matchit"
 version = "0.8.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -575,14 +583,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0bf256ce5efdfa370213c1dabab5935a12e49f2c58d15e9eac2870d3b4f27263"
 
 [[package]]
-name = "time"
-version = "0.1.0"
-source = "git+https://github.com/jeffersoncbd/time.git#5f92bd96d18acb9b267499a469ee45161673d583"
-dependencies = [
- "chrono",
-]
-
-[[package]]
 name = "tokio"
 version = "1.43.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -633,9 +633,11 @@ dependencies = [
  "bitflags",
  "bytes",
  "http",
+ "http-body",
  "pin-project-lite",
  "tower-layer",
  "tower-service",
+ "tracing",
 ]
 
 [[package]]

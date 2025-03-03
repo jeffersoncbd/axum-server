@@ -4,7 +4,7 @@ use serde_json::{json, Value};
 use logger;
 use tokio::net::TcpListener;
 use tower::ServiceBuilder;
-use tower_http::cors;
+use tower_http::{cors,trace::TraceLayer};
 
 pub use axum::routing::{get,MethodRouter};
 
@@ -44,6 +44,8 @@ pub async fn start(routes: Vec<(&'static str, MethodRouter)>) {
     let server_port = get_server_port();
 
     let mut router = Router::new();
+
+    router = router.layer(TraceLayer::new_for_http());
 
     for route in routes.iter() {
         router = router.route(route.0, route.1.clone())
