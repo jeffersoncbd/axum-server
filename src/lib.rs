@@ -12,7 +12,7 @@ use tokio::net::TcpListener;
 use tower::ServiceBuilder;
 use tower_http::cors;
 
-pub use axum::routing::{get, MethodRouter};
+pub use axum::routing::{delete, get, patch, post, put, MethodRouter};
 
 pub type Request<T> = Result<Json<T>, JsonRejection>;
 pub type Response = (StatusCode, Json<Value>);
