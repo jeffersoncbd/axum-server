@@ -1,10 +1,10 @@
 [package]
 name = "axum_server"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 
 [dependencies]
-time = { git = "https://github.com/jeffersoncbd/time.git" }
+logger = { git = "https://github.com/jeffersoncbd/logger.git" }
 dotenvy = "0.15.7"
 axum = "0.8.1"
 tower = "0.5.2"
