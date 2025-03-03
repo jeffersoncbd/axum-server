@@ -1,5 +1,5 @@
 use axum::{
-    extract::Request,
+    extract::{rejection::JsonRejection, Request as AxumRequest},
     http::StatusCode,
     middleware::{self, Next},
     response::Response as AxumResponse,
@@ -14,6 +14,7 @@ use tower_http::cors;
 
 pub use axum::routing::{get, MethodRouter};
 
+pub type Request<T> = Result<Json<T>, JsonRejection>;
 pub type Response = (StatusCode, Json<Value>);
 
 pub struct MakeResponse;
@@ -54,7 +55,7 @@ fn get_server_port() -> String {
         .expect("\n\t❌ A variável de ambiente \"SERVER_PORT\" não foi definida!\n\n")
 }
 
-async fn logger_middleware(request: Request, next: Next) -> AxumResponse {
+async fn logger_middleware(request: AxumRequest, next: Next) -> AxumResponse {
     let method = request.method().clone();
     let uri = request.uri().clone();
     let response = next.run(request).await;
