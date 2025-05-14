@@ -1,18 +1,16 @@
-use axum::{
-    extract::{rejection::JsonRejection, Request as AxumRequest},
-    http::StatusCode,
-    middleware::Next,
-    response::Response as AxumResponse,
-    Json,
-};
+use axum::{extract::rejection::JsonRejection, http::StatusCode, Json};
 use logger;
 use serde_json::{json, Value};
 use std::env;
 use tokio::net::TcpListener;
 
-pub use tower::ServiceBuilder;
 pub use axum::routing::{delete, get, patch, post, put, MethodRouter};
+pub use axum::{
+    extract::Request as AxumRequest, middleware::Next as AxumNext,
+    response::Response as AxumResponse,
+};
 pub use axum::{middleware, Router};
+pub use tower::ServiceBuilder;
 pub use tower_http::cors;
 
 pub type Request<T> = Result<Json<T>, JsonRejection>;
@@ -56,7 +54,7 @@ fn get_server_port() -> String {
         .expect("\n\t❌ A variável de ambiente \"SERVER_PORT\" não foi definida!\n\n")
 }
 
-pub async fn logger_middleware(request: AxumRequest, next: Next) -> AxumResponse {
+pub async fn logger_middleware(request: AxumRequest, next: AxumNext) -> AxumResponse {
     let method = request.method().clone();
     let uri = request.uri().clone();
     let response = next.run(request).await;
