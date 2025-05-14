@@ -9,7 +9,7 @@ pub use axum::{
     extract::Request as AxumRequest, middleware::Next as AxumNext,
     response::Response as AxumResponse,
 };
-pub use axum::{middleware, Router};
+pub use axum::{http, middleware, Router};
 pub use tower::ServiceBuilder;
 pub use tower_http::cors;
 
