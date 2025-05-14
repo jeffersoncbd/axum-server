@@ -1,18 +1,18 @@
 use axum::{
     extract::{rejection::JsonRejection, Request as AxumRequest},
     http::StatusCode,
-    middleware::{self, Next},
+    middleware::Next,
     response::Response as AxumResponse,
-    Json, Router,
+    Json,
 };
 use logger;
 use serde_json::{json, Value};
 use std::env;
 use tokio::net::TcpListener;
-use tower::ServiceBuilder;
-use tower_http::cors;
 
 pub use axum::routing::{delete, get, patch, post, put, MethodRouter};
+pub use axum::{middleware, Router};
+pub use tower_http::cors;
 
 pub type Request<T> = Result<Json<T>, JsonRejection>;
 pub type Response = (StatusCode, Json<Value>);
@@ -55,7 +55,7 @@ fn get_server_port() -> String {
         .expect("\n\t❌ A variável de ambiente \"SERVER_PORT\" não foi definida!\n\n")
 }
 
-async fn logger_middleware(request: AxumRequest, next: Next) -> AxumResponse {
+pub async fn logger_middleware(request: AxumRequest, next: Next) -> AxumResponse {
     let method = request.method().clone();
     let uri = request.uri().clone();
     let response = next.run(request).await;
@@ -67,25 +67,8 @@ async fn logger_middleware(request: AxumRequest, next: Next) -> AxumResponse {
     response
 }
 
-pub async fn start(routes: Vec<(&'static str, MethodRouter)>) {
+pub async fn start(router: Router) {
     let server_port = get_server_port();
-
-    let mut router = Router::new();
-
-    for route in routes.iter() {
-        router = router.route(route.0, route.1.clone())
-    }
-    drop(routes);
-    router = router.layer(
-        ServiceBuilder::new()
-            .layer(
-                cors::CorsLayer::new()
-                    .allow_headers(cors::Any)
-                    .allow_methods(cors::Any)
-                    .allow_origin(cors::Any),
-            )
-            .layer(middleware::from_fn(logger_middleware)),
-    );
 
     let address = format!("0.0.0.0:{}", &server_port);
     let listener = TcpListener::bind(&address)
